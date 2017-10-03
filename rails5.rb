@@ -30,6 +30,10 @@ gem_group :development, :test do
   gem 'spring-commands-rspec'         # Implements the rspec command for Spring
 end
 
+gem_group :production, :test do
+  gem 'rails_12factor'      
+end
+
 gem_group :test do
   gem "rspec-rails"                   # Test suite
   gem 'factory_girl_rails'            # Fixtures replacement
