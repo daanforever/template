@@ -37,6 +37,7 @@ gem 'faker'                           # A library for generating fake data
 gem 'rails_semantic_logger'           # A feature rich logging framework
 
 gem 'devise'                          # Flexible authentication solution for Rails with Warden
+gem 'fie'                             # Frontend framework running over a WebSocket connection
 
 gem_group :development do
   # gem 'railroady'                     # Class diagram generator. Usage: rake diagram:all
@@ -175,7 +176,7 @@ inside('app/views/layouts') do
     .container{style: 'height: 4em;'}
       = render 'layouts/messages'
     .container
-      = yield
+      = render template: 'layouts/fie'
     = javascript_include_tag 'application', 'data-turbolinks-track' => 'reload'
     = javascript_include_tag controller_path, 'data-turbolinks-track' => 'reload'
 CODE
@@ -239,6 +240,7 @@ inside('app/assets/javascripts') do
 //= require activestorage
 //= require jquery
 //= require bootstrap.min
+//= require fie
 CODE
 end
 
@@ -307,7 +309,12 @@ CODE
 
 end
 
-run 'rm app/views/layouts/application.html.erb'
-run 'rm app/assets/stylesheets/application.css'
-run 'rm app/assets/javascripts/application.js'
+run 'rm -f app/views/layouts/application.html.erb'
+run 'rm -f app/assets/stylesheets/application.css'
+run 'rm -f app/assets/javascripts/application.js'
 run 'bin/rails db:migrate'
+
+file '.versions.conf', <<-CODE
+#ruby=
+#ruby-gemset=
+CODE
