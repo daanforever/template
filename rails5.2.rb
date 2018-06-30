@@ -1,7 +1,6 @@
-run 'echo > Gemfile'
-
-add_source 'https://rubygems.org'
-# git_source(:github) { |repo| "https://github.com/#{repo}.git" }
+file 'Gemfile', <<-CODE
+source 'https://rubygems.org'
+git_source(:github) { |repo| "https://github.com/\#{repo}.git" }
 # Bundle edge Rails instead: gem 'rails', github: 'rails/rails'
 
 gem 'rails', '~> 5.2.0'
@@ -39,7 +38,7 @@ gem 'rails_semantic_logger'           # A feature rich logging framework
 gem 'devise'                          # Flexible authentication solution for Rails with Warden
 gem 'fie'                             # Frontend framework running over a WebSocket connection
 
-gem_group :development do
+group :development do
   # gem 'railroady'                     # Class diagram generator. Usage: rake diagram:all
   gem 'web-console'                   # Rails Console on the Browser
   gem 'byebug'                        # TODO: add comment or delete
@@ -53,14 +52,14 @@ gem_group :development do
   gem 'haml-rails'                    # Integration for HAML
 end
 
-gem_group :development, :test do
+group :development, :test do
   gem 'listen', '>= 3.0.5', '< 3.2'
   gem 'spring-watcher-listen', '~> 2.0.0'
   gem 'spring', require: false        # Spring speeds up development
   gem 'spring-commands-rspec'         # Implements the rspec command for Spring
 end
 
-gem_group :test do
+group :test do
   gem 'rspec-rails'                   # Test suite
   gem 'factory_bot_rails'             # Fixtures replacement
   gem 'database_cleaner'              # Helper gem for rspec
@@ -68,6 +67,7 @@ gem_group :test do
   gem 'webmock', require: false       # Library for stubbing HTTP requests
   # gem 'capybara', require: false      # Acceptance test framework for web applications
 end
+CODE
 
 after_bundle do
 
