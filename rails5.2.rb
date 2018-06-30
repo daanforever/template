@@ -56,7 +56,7 @@ end
 gem_group :development, :test do
   gem 'listen', '>= 3.0.5', '< 3.2'
   gem 'spring-watcher-listen', '~> 2.0.0'
-  gem 'spring'                        # Spring speeds up development
+  gem 'spring', require: false        # Spring speeds up development
   gem 'spring-commands-rspec'         # Implements the rspec command for Spring
 end
 
@@ -69,7 +69,7 @@ gem_group :test do
   # gem 'capybara', require: false      # Acceptance test framework for web applications
 end
 
-run 'bundle install'
+after_bundle do
 
 environment "
     config.assets.compile     = true
@@ -82,6 +82,10 @@ environment "
       g.helper_specs false
     end
 "
+
+generate('settingson', 'Settings')
+generate('rspec:install')
+generate('simple_form:install', '--bootstrap')
 
 initializer 'assets.rb', <<-CODE
 # Be sure to restart your server when you modify this file.
@@ -99,7 +103,11 @@ Rails.application.config.assets.paths << Rails.root.join('node_modules')
 # folder are already added.
 # Rails.application.config.assets.precompile += %w( admin.js admin.css )
 
-Rails.application.config.assets.precompile += %w( welcome.* )
+Rails.application.config.assets.precompile += %w(
+  turbolinks.js
+  devise/*
+  welcome.*
+)
 CODE
 
 initializer 'mini_profiler.rb', <<-CODE
@@ -114,15 +122,6 @@ if defined?(Rack::MiniProfiler)
   Rack::MiniProfiler.config.toggle_shortcut = 'esc'
 end
 CODE
-
-generate('simple_form:install', '--bootstrap')
-generate('devise:install')
-generate('devise', 'User')
-generate('settingson', 'Settings')
-generate('rspec:install')
-generate('controller', 'welcome', 'index')
-
-route "root to: 'welcome#index'"
 
 inside('app/helpers') do
   run 'rm application_helper.rb'
@@ -165,6 +164,7 @@ inside('app/views/layouts') do
     %meta{charset: 'utf-8'}
     %meta{content: 'IE=edge', 'http-equiv' => 'X-UA-Compatible'}
     %meta{content: 'width=device-width, initial-scale=1, shrink-to-fit=no', name: 'viewport'}
+    %link{rel: "stylesheet", href: "https://stackpath.bootstrapcdn.com/bootstrap/4.1.1/css/bootstrap.min.css", integrity: "sha384-WskhaSGFgHYWDcbwN70/dfYBj47jz9qbsMId/iRN3ewGhXQFZCSftd1LZCfmhktB", crossorigin: "anonymous"}
     = stylesheet_link_tag 'application', media: 'all', 'data-turbolinks-track' => true
     = stylesheet_link_tag controller_path, media: 'all', 'data-turbolinks-track' => true
     = javascript_include_tag 'turbolinks', 'data-turbolinks-track' => 'reload'
@@ -176,7 +176,13 @@ inside('app/views/layouts') do
     .container{style: 'height: 4em;'}
       = render 'layouts/messages'
     .container
-      = render template: 'layouts/fie'
+      - if controller.class.parent == Devise
+        = yield
+      - else
+        = render template: 'layouts/fie'
+    %script{src: "https://code.jquery.com/jquery-3.3.1.slim.min.js", integrity: "sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo", crossorigin: "anonymous"}
+    %script{src: "https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.3/umd/popper.min.js", integrity: "sha384-ZMP7rVo3mIykV+2+9J3UJ46jBk0WLaUAdn689aCwoqbBJiSnjAK/l8WvCWPIPm49", crossorigin: "anonymous"}
+    %script{src: "https://stackpath.bootstrapcdn.com/bootstrap/4.1.1/js/bootstrap.min.js", integrity: "sha384-smHYKdLADwkXOn1EmN1qk/HfnUcbVRZyYmZ4qpPea6sjB/pTJ0euyQp0Mk8ck+5T", crossorigin: "anonymous"}
     = javascript_include_tag 'application', 'data-turbolinks-track' => 'reload'
     = javascript_include_tag controller_path, 'data-turbolinks-track' => 'reload'
 CODE
@@ -238,8 +244,8 @@ inside('app/assets/javascripts') do
   file 'application.coffee', <<-CODE
 //= require rails-ujs
 //= require activestorage
-//= require jquery
-//= require bootstrap.min
+# require jquery */
+# require bootstrap.min */
 //= require fie
 CODE
 end
@@ -252,7 +258,7 @@ inside('app/assets/stylesheets') do
   $screen-sm:       630px !default;
   $screen-sm-min:   $screen-sm !default;
 
-  @import           "bootstrap.min.css";
+  /* @import           "bootstrap.min.css"; */
 
   body {
     padding-top:    20px;
@@ -312,9 +318,42 @@ end
 run 'rm -f app/views/layouts/application.html.erb'
 run 'rm -f app/assets/stylesheets/application.css'
 run 'rm -f app/assets/javascripts/application.js'
+
+generate('controller', 'welcome', 'index')
+generate('devise:install')
+generate('devise:views')
+generate('assets devise/confirmations')
+generate('assets devise/passwords')
+generate('assets devise/registrations')
+generate('assets devise/sessions')
+generate('assets devise/unlocks')
+generate('devise', 'User')
+
+route "root to: 'welcome#index'"
 run 'bin/rails db:migrate'
 
 file '.versions.conf', <<-CODE
 #ruby=
 #ruby-gemset=
 CODE
+
+file 'config/cable.yml', <<-CODE
+
+redis: &redis
+  adapter: redis
+  url: <%= ENV.fetch("REDIS_URL") { "redis://localhost:6379/1" } %>
+
+development:
+  <<: *redis
+  channel_prefix: #{app_const_base.underscore}_development
+
+test:
+  <<: *redis
+  channel_prefix: #{app_const_base.underscore}_test
+
+production:
+  <<: *redis
+  channel_prefix: #{app_const_base.underscore}_production
+
+CODE
+end
