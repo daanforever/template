@@ -198,7 +198,7 @@ CODE
     - if user_signed_in?
       %ul.navbar-nav.flex-grow-1
         %li{ active_if('welcome', 'index') }
-          = link_to t('menu.cms', default: 'CMS'),  root_path, class: 'nav-link'
+          = link_to t('menu.active', default: 'Active'),  root_path, class: 'nav-link'
         %li{ active_if('test', 'index') }
           = link_to t('menu.inactive', default: 'Inactive'),  root_path, class: 'nav-link'
       %ul.navbar-nav
