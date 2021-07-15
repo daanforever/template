@@ -1,3 +1,9 @@
+gem 'sprockets', '~> 4'
+gem 'sprockets-rails', :require => 'sprockets/railtie'
+
+gem 'libv8'                           # V8 JavaScript engine
+gem 'therubyracer'                    # Embed the V8 JavaScript interpreter into Ruby
+
 gem 'jquery-rails'                    # Provides jQuery and the jQuery-ujs driver
 gem 'bootstrap-sass'                  # Sass-powered version of Bootstrap
 gem 'haml'                            # HTML Abstraction Markup Language
@@ -9,8 +15,6 @@ gem 'http'                            # A fast Ruby HTTP client
 gem 'faker'                           # A library for generating fake data
 
 gem 'devise'                          # Flexible authentication solution for Rails with Warden
-gem 'libv8'                           # V8 JavaScript engine
-gem 'therubyracer'                    # Embed the V8 JavaScript interpreter into Ruby
 
 gem_group :development do
   gem 'haml-rails'                    # haml intergration for Rails
@@ -51,18 +55,15 @@ environment "
     end
 "
 
+environment "
+  config.web_console.permissions = '192.168.1.0/24'
+", env: 'development'
+
 inside do
   generate('simple_form:install', '--bootstrap')
   generate('settingson', 'Settings')
   generate('rspec:install')
 end
-
-initializer 'web_console_whitelist.rb', <<-CODE
-Rails.application.configure do
-  config.web_console.whitelisted_ips = ['192.168.1.0/24']
-  config.web_console.permissions = '192.168.1.0/24'
-end
-CODE
 
 initializer 'mini_profiler.rb', <<-CODE
 if defined?(Rack::MiniProfiler)
@@ -130,8 +131,7 @@ inside('app/views/layouts') do
     .container{style: 'height: 4em;'}
       = render 'layouts/messages'
     .container
-      - if controller.class.module_parent == Devise
-        = yield
+      = yield
     %script{src: "https://code.jquery.com/jquery-3.3.1.slim.min.js", integrity: "sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo", crossorigin: "anonymous"}
     %script{src: "https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.3/umd/popper.min.js", integrity: "sha384-ZMP7rVo3mIykV+2+9J3UJ46jBk0WLaUAdn689aCwoqbBJiSnjAK/l8WvCWPIPm49", crossorigin: "anonymous"}
     %script{src: "https://stackpath.bootstrapcdn.com/bootstrap/4.1.1/js/bootstrap.min.js", integrity: "sha384-smHYKdLADwkXOn1EmN1qk/HfnUcbVRZyYmZ4qpPea6sjB/pTJ0euyQp0Mk8ck+5T", crossorigin: "anonymous"}
@@ -191,6 +191,16 @@ CODE
 
   file '_bottom.html.haml', ""
 
+end
+
+inside('app/assets/config') do
+  file 'manifest.js', <<-CODE
+//= link_tree ../images
+//= link application.js
+//= link application.scss
+//= link_directory ../stylesheets .scss
+//= link_directory ../javascripts .js
+CODE
 end
 
 inside('app/assets/javascripts') do
